@@ -1,0 +1,21 @@
+{
+  "name": "number-ranger",
+  "version": "0.0.1",
+  "description": "Interpret ranges from strings and use them easily",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "number",
+    "range",
+    "parse",
+    "parsing"
+  ],
+  "author": "Jeroen Engels <jfm.engels@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^2.3.0",
+    "mocha": "^2.2.4"
+  }
+}
