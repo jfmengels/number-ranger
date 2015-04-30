@@ -1,10 +1,14 @@
 {
   "name": "number-ranger",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Interpret ranges from strings and use them easily",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jfmengels/number-ranger"
   },
   "keywords": [
     "number",
