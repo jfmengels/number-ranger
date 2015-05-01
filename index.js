@@ -4,22 +4,39 @@ function notEmpty(x) {
     return x;
 }
 
+var parseRegex;
+function getParseRegex() {
+    if (!parseRegex) {
+        var accepted = [
+            '\\-?\\d+(\\:\\-?\\d+)?', // Number range or lone number
+            '(\\-?\\d+|\\$)\\:(\\-?\\d+|\\$)', // Ranges with infinity
+            ',' // Range delimiter
+        ];
+        parseRegex = new RegExp('^(' + accepted.join('|') + ')*$');    
+    }
+    return parseRegex;
+}
+
 function parse(s) {
-    if (typeof s !== 'string' || !/^[\d\,\-\: ]*$/.test(s)) {
+    if (typeof s !== 'string') {
+        return null;
+    }
+    s = s.replace(/\s/g, ''); // Remove spaces that we want to ignore
+    
+    if (!getParseRegex().test(s)) {
         return null;
     }
 
     return s
-        .replace(/\s/g, '')
         .split(',')
         .filter(notEmpty)
         .map(function(range) {
             var couple = range.split(':').filter(notEmpty);
             var res = {
-                start: parseFloat(couple[0])
+                start: couple[0] === '$' ? -Infinity : parseFloat(couple[0])
             };
             if (couple[1]) {
-                res.end = parseFloat(couple[1]);
+                res.end = couple[1] === '$' ? +Infinity : parseFloat(couple[1]);
             }
             return res;
         });
@@ -46,6 +63,9 @@ function isInRange(item, ranges, key) {
 }
 
 function isInRangeFilter(ranges, key) {
+    if (typeof ranges === 'string') {
+        ranges = parse(ranges);
+    }
     return function(item) {
         return isInRange(item, ranges, key);
     };

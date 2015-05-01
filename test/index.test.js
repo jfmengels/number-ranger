@@ -18,11 +18,17 @@ describe('parsing', function() {
         expect(ranger.parse('2;3')).to.be.null;
     });
     
+    it('should return null when there are lonely ranges ("x:", ":x")', function() {
+        expect(ranger.parse('2:3,7:')).to.be.null;
+        expect(ranger.parse('2:3,:7')).to.be.null;
+    });
+    
     it('should return null when there are lonely $', function() {
         expect(ranger.parse('$')).to.be.null;
         expect(ranger.parse('$-')).to.be.null;
         expect(ranger.parse('-$')).to.be.null;
         expect(ranger.parse('3,-$,2')).to.be.null;
+        expect(ranger.parse('3,$-,2')).to.be.null;
     });
     
     it('should create empty range when string is empty', function() {
@@ -78,19 +84,8 @@ describe('parsing', function() {
         }]);  
     });
     
-    it('should convert lonely couples ("x:", ":x") into single ranges', function() {
-        expect(ranger.parse('2:3,7:,10:')).to.deep.equal([{
-            start: 2,
-            end: 3
-        }, {
-            start: 7
-        }, {
-            start: 10
-        }]);  
-    });
-    
     it('should convert $ to -Infinity if at the start of a range', function() {
-        expect(ranger.parse('$:')).to.deep.equal([{
+        expect(ranger.parse('$:0')).to.deep.equal([{
             start: -Infinity,
             end: 0
         }]);  

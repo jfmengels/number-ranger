@@ -1,8 +1,11 @@
 # number-ranger
+[![NPM version](http://img.shields.io/npm/v/number-ranger.svg?style=flat)](https://www.npmjs.com/package/number-ranger)
+[![Dependencies Status](http://img.shields.io/david/jfmengels/number-ranger.svg?style=flat)](https://david-dm.org/jfmengels/number-ranger#info=dependencies)
+[![devDependencies Status](http://img.shields.io/david/dev/jfmengels/number-ranger.svg?style=flat)](https://david-dm.org/jfmengels/number-ranger#info=devDependencies)
 
 Interpret ranges from strings and use them easily.
 
-# install
+# Install
 
 Install via npm:
 ```
