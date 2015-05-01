@@ -17,12 +17,12 @@ describe('parsing', function() {
         expect(ranger.parse('2-3,4:haha')).to.be.null;
         expect(ranger.parse('2;3')).to.be.null;
     });
-    
+
     it('should return null when there are lonely ranges ("x:", ":x")', function() {
         expect(ranger.parse('2:3,7:')).to.be.null;
         expect(ranger.parse('2:3,:7')).to.be.null;
     });
-    
+
     it('should return null when there are lonely $', function() {
         expect(ranger.parse('$')).to.be.null;
         expect(ranger.parse('$-')).to.be.null;
@@ -30,33 +30,46 @@ describe('parsing', function() {
         expect(ranger.parse('3,-$,2')).to.be.null;
         expect(ranger.parse('3,$-,2')).to.be.null;
     });
-    
-    it('should create empty range when string is empty', function() {
-        expect(ranger.parse('')).to.deep.equal([]);  
+
+    it('should return null when there are negative $ signes', function() {
+        expect(ranger.parse('-$')).to.be.null;
+        expect(ranger.parse('-$,3')).to.be.null;
     });
-    
+
+    it('should return null when values are attached', function() {
+        expect(ranger.parse('$$')).to.be.null;
+        expect(ranger.parse('$1')).to.be.null;
+        expect(ranger.parse('2$')).to.be.null;
+        expect(ranger.parse('--3')).to.be.null;
+        expect(ranger.parse('4-5')).to.be.null;
+    });
+
+    it('should create empty range when string is empty', function() {
+        expect(ranger.parse('')).to.deep.equal([]);
+    });
+
     it('should create simple range when only one number is given', function() {
         expect(ranger.parse('2')).to.deep.equal([{
             start: 2
-        }]);  
+        }]);
     });
-    
+
     it('should create a range between numbers when separated by a ":"', function() {
         expect(ranger.parse('3:10')).to.deep.equal([{
             start: 3,
             end: 10
-        }]);  
+        }]);
     });
-    
+
     it('should create multiple ranges when separated by a ","', function() {
         expect(ranger.parse('2,3:10')).to.deep.equal([{
             start: 2
         }, {
             start: 3,
             end: 10
-        }]);  
+        }]);
     });
-    
+
     it('should create negative ranges', function() {
         expect(ranger.parse('-400:-200,-50:100')).to.deep.equal([{
             start: -400,
@@ -64,45 +77,45 @@ describe('parsing', function() {
         }, {
             start: -50,
             end: 100
-        }]);  
+        }]);
     });
-    
+
     it('should ignore empty spaces', function() {
         expect(ranger.parse(' 2 , 3: 1 0 ')).to.deep.equal([{
             start: 2
         }, {
             start: 3,
             end: 10
-        }]);  
+        }]);
     });
-    
+
     it('should ignore empty ranges', function() {
         expect(ranger.parse('2,3,,,')).to.deep.equal([{
             start: 2
         }, {
             start: 3
-        }]);  
+        }]);
     });
-    
+
     it('should convert $ to -Infinity if at the start of a range', function() {
         expect(ranger.parse('$:0')).to.deep.equal([{
             start: -Infinity,
             end: 0
-        }]);  
+        }]);
     });
-    
+
     it('should convert $ to +Infinity if at the end of a range', function() {
         expect(ranger.parse('0:$')).to.deep.equal([{
             start: 0,
             end: +Infinity
-        }]);  
+        }]);
     });
-    
+
     it('should convert "$:$" to -Infinity:+Infinity', function() {
         expect(ranger.parse('$:$')).to.deep.equal([{
             start: -Infinity,
             end: +Infinity
-        }]);  
+        }]);
     });
 });
 
@@ -211,22 +224,22 @@ describe('isInRange', function() {
 describe('isInRangeFilter', function() {
     it('should filter out items not in range', function() {
         var ranges = [{
-            start: 0, 
-            end: 4 
+            start: 0,
+            end: 4
         }, {
             start: 10
         }, {
-            start: 8 
+            start: 8
         }];
         var res = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             .filter(ranger.isInRangeFilter(ranges));
-        expect(res).to.deep.equal([0, 1, 2, 3, 4, 8, 10]);  
+        expect(res).to.deep.equal([0, 1, 2, 3, 4, 8, 10]);
     });
 
     it('should accept strings as ranges, to be understood with parse', function() {
         var res = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             .filter(ranger.isInRangeFilter('0:4,10,8'));
-        expect(res).to.deep.equal([0, 1, 2, 3, 4, 8, 10]);  
+        expect(res).to.deep.equal([0, 1, 2, 3, 4, 8, 10]);
     });
 
     it('should accept a key to look at a specific field of the item when it is an object', function() {

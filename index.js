@@ -4,32 +4,23 @@ function notEmpty(x) {
     return x;
 }
 
-var parseRegex;
-function getParseRegex() {
-    if (!parseRegex) {
-        var accepted = [
-            '\\-?\\d+(\\:\\-?\\d+)?', // Number range or lone number
-            '(\\-?\\d+|\\$)\\:(\\-?\\d+|\\$)', // Ranges with infinity
-            ',' // Range delimiter
-        ];
-        parseRegex = new RegExp('^(' + accepted.join('|') + ')*$');    
-    }
-    return parseRegex;
-}
-
 function parse(s) {
     if (typeof s !== 'string') {
         return null;
     }
-    s = s.replace(/\s/g, ''); // Remove spaces that we want to ignore
-    
-    if (!getParseRegex().test(s)) {
+    var ranges = s.replace(/\s/g, '') // Remove spaces that we want to ignore
+        .split(',')
+        .filter(notEmpty);
+
+    var isOk = ranges.reduce(function(res, range) {
+        return res && (/^\-?\d+(\:\-?\d+)?$/.test(range) || /^(\-?\d+|\$)\:(\-?\d+|\$)$/.test(range));
+    }, true);
+
+    if (!isOk) {
         return null;
     }
 
-    return s
-        .split(',')
-        .filter(notEmpty)
+    return ranges
         .map(function(range) {
             var couple = range.split(':').filter(notEmpty);
             var res = {
@@ -52,11 +43,11 @@ function isInRange(item, ranges, key) {
     if (key) {
     	item = item[key];
     }
-    
+
     for (var index in ranges) {
         var range = ranges[index];
         if (item >= range.start && item <= (range.end || range.start)) {
-           return true;   
+           return true;
         }
     }
     return false;
