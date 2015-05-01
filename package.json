@@ -1,6 +1,6 @@
 {
   "name": "number-ranger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Interpret ranges from strings and use them easily",
   "main": "index.js",
   "scripts": {
