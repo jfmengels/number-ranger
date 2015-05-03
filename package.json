@@ -1,6 +1,6 @@
 {
   "name": "number-ranger",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Interpret ranges from strings and use them easily",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   ],
   "author": "Jeroen Engels <jfm.engels@gmail.com>",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "chai": "^2.3.0",
     "mocha": "^2.2.4"
   }
