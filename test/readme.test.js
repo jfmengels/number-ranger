@@ -17,6 +17,9 @@ describe('README examples', function() {
         res = ranger.parse('2:3,4');
         expect(res).to.deep.equal([{ start : 2, end: 3 }, { start: 4 }]);
 
+        res = ranger.parse('.002:.4');
+        expect(res).to.deep.equal([{ start : .002, end: .4 }]);
+
         res = ranger.parse('2:$');
         expect(res).to.deep.equal([{ start : 2, end: +Infinity }]);
 
@@ -42,6 +45,12 @@ describe('README examples', function() {
         res = ranger.isInRange(450, [{
             start: 400,
             end: 500
+        }]);
+        expect(res).to.be.true;
+
+        res = ranger.isInRange(450, [{
+            start: 500,
+            end: 400
         }]);
         expect(res).to.be.true;
     });

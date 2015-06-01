@@ -80,6 +80,16 @@ describe('parsing', function() {
         }]);
     });
 
+    it('should accept explicit positive ranges ranges', function() {
+        expect(ranger.parse('+200:+400,+50:100')).to.deep.equal([{
+            start: 200,
+            end: 400
+        }, {
+            start: 50,
+            end: 100
+        }]);
+    });
+
     it('should ignore empty spaces', function() {
         expect(ranger.parse(' 2 , 3: 1 0 ')).to.deep.equal([{
             start: 2
@@ -115,6 +125,44 @@ describe('parsing', function() {
         expect(ranger.parse('$:$')).to.deep.equal([{
             start: -Infinity,
             end: +Infinity
+        }]);
+    });
+
+    it('should reject -$', function() {
+        expect(ranger.parse('-$')).to.be.null;
+        expect(ranger.parse('-$:$')).to.be.null;
+        expect(ranger.parse('$:-$')).to.be.null;
+        expect(ranger.parse('-$:-$')).to.be.null;
+    });
+
+    it('should accept handle decimals', function() {
+        expect(ranger.parse('2.4')).to.deep.equal([{
+            start: 2.4
+        }]);
+
+        expect(ranger.parse('0.002:2.0,700.45')).to.deep.equal([{
+            start: 0.002,
+            end: 2
+        }, {
+            start: 700.45
+        }]);
+
+        expect(ranger.parse('2.')).to.deep.equal([{
+            start: 2
+        }]);
+
+        expect(ranger.parse('.2')).to.deep.equal([{
+            start: 0.2
+        }]);
+
+        expect(ranger.parse('.')).to.be.null;
+        expect(ranger.parse('..')).to.be.null;
+    });
+
+    it('should create range with start being higher than end', function() {
+        expect(ranger.parse('4:2')).to.deep.equal([{
+            start: 4,
+            end: 2
         }]);
     });
 });
@@ -216,8 +264,46 @@ describe('isInRange', function() {
     });
 
     it('should accept a key to look at a specific field of the item when it is an object', function() {
-        expect(ranger.isInRange({ keyValue: 402 }, '400:405', 'keyValue')).to.be.true;
-        expect(ranger.isInRange({ keyValue: 0 }, '400:405', 'keyValue')).to.be.false;
+        expect(ranger.isInRange({
+            keyValue: 402
+        }, '400:405', 'keyValue')).to.be.true;
+        expect(ranger.isInRange({
+            keyValue: 0
+        }, '400:405', 'keyValue')).to.be.false;
+    });
+
+    it('should return true when item equals range.start and range.start equals range.end', function() {
+        expect(ranger.isInRange(400, [{
+            start: 400,
+            end: 400
+        }])).to.be.true;
+    });
+
+    it('should return false when item doesn\'t equal range.start and range.start equals range.end', function() {
+        expect(ranger.isInRange(-400, [{
+            start: 400,
+            end: 400
+        }])).to.be.false;
+
+        expect(ranger.isInRange(2, [{
+            start: 400,
+            end: 400
+        }])).to.be.false;
+    });
+
+    it('should have the same results when start > end than when start < end', function() {
+        var startLower = [{
+                start: 2,
+                end: 4
+            }],
+            startHigher = [{
+                start: 4,
+                end: 2
+            }];
+
+        [null, 3, 2, 4, -2, -Infinity, +Infinity].forEach(function(value) {
+            expect(ranger.isInRange(value, startHigher)).to.equal(ranger.isInRange(value, startLower));
+        })
     });
 });
 

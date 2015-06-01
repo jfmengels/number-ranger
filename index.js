@@ -12,11 +12,41 @@ function parse(s) {
         .split(',')
         .filter(notEmpty);
 
-    var isOk = ranges.reduce(function(res, range) {
-        return res && (/^\-?\d+(\:\-?\d+)?$/.test(range) || /^(\-?\d+|\$)\:(\-?\d+|\$)$/.test(range));
+    // regex, which will be applied on every element of the range splitted by ',':
+    //  ^   start of string
+    //  (
+    //      [+-]?           optional sign character
+    //      (
+    //          \d+         1 or more digits
+    //          (\.\d*)?)   eventually followed by a dot and eventually more digits
+    //      |               or
+    //          (\.\d+)     dot followed by 1 or more digits
+    //      )
+    //  |   or
+    //      \$  a dollar sign representing Infinity
+    //  )
+    //  (
+    //     \:  a colon to indicate that this will be a range
+    //         followed by the same thing in part 1
+    //     (
+    //         [+-]?           optional sign character
+    //         (
+    //             \d+         1 or more digits
+    //             (\.\d*)?)   eventually followed by a dot and eventually more digits
+    //         |               or
+    //             (\.\d+)     dot followed by 1 or more digits
+    //         )
+    //     |   or
+    //         \$  a dollar sign representing Infinity
+    //     )
+    //  )?   this second part is optional
+    //  $    end of string
+    var validRangeRegex = /^([+-]?((\d+(\.\d*)?)|(\.\d+))|\$)(\:([+-]?((\d+(\.\d*)?)|(\.\d+))|\$))?$/;
+    var isValidRange = ranges.reduce(function(res, range) {
+        return res && range !== '$' && range !== '.' && validRangeRegex.test(range);
     }, true);
 
-    if (!isOk) {
+    if (!isValidRange) {
         return null;
     }
 
@@ -41,13 +71,23 @@ function isInRange(item, ranges, key) {
         return false;
     }
     if (key) {
-    	item = item[key];
+        item = item[key];
     }
 
     for (var index in ranges) {
         var range = ranges[index];
-        if (item >= range.start && item <= (range.end || range.start)) {
-           return true;
+        var min, max;
+        if (!range.end) {
+            min = max = range.start;
+        } else if (range.start <= range.end) {
+            min = range.start;
+            max = range.end;
+        } else {
+            min = range.end;
+            max = range.start;
+        }
+        if (item >= min && item <= max) {
+            return true;
         }
     }
     return false;
