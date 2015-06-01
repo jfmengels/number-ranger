@@ -31,6 +31,9 @@ ranger.parse('2:3');
 ranger.parse('2:3,4');
 // --> [{ start : 2, end: 3 }, { start: 4 }]
 
+ranger.parse('.002:.4');
+// --> [{ start : .002, end: .4 }]
+
 ranger.parse('2:$');
 // --> [{ start : 2, end: +Infinity }]
 
@@ -62,6 +65,13 @@ ranger.isInRange({ value: 450 }, '400:450', 'value');
 ranger.isInRange(450, [{
     start: 400,
     end: 500
+}]);
+// --> true
+
+// The order of start and end are not important
+ranger.isInRange(450, [{
+    start: 500,
+    end: 400
 }]);
 // --> true
 ```
