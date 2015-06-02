@@ -25,6 +25,12 @@ describe('README examples', function() {
 
         res = ranger.parse('$:2');
         expect(res).to.deep.equal([{ start : -Infinity, end: 2 }]);
+
+        res = ranger.parse('!2:4');
+        expect(res).to.deep.equal([{ start : 2, end: 4, startIncluded: false }]);
+
+        res = ranger.parse('2:!4');
+        expect(res).to.deep.equal([{ start : 2, end: 4, endIncluded: false }]);
     });
 
     it('ranger.isInRange return as expected', function() {
@@ -53,6 +59,13 @@ describe('README examples', function() {
             end: 400
         }]);
         expect(res).to.be.true;
+
+        res = ranger.isInRange(2, [{
+            start: 2,
+            end: 5,
+            startIncluded: false
+        }]);
+        expect(res).to.be.false;
     });
 
     it('ranger.isInRangeFilter return as expected', function() {

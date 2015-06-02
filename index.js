@@ -13,7 +13,8 @@ function parse(s) {
         .filter(notEmpty);
 
     // regex, which will be applied on every element of the range splitted by ',':
-    //  ^   start of string
+    //  ^       start of string
+    //  \!?     optionally don't include first value
     //  (
     //      [+-]?           optional sign character
     //      (
@@ -26,8 +27,9 @@ function parse(s) {
     //      \$  a dollar sign representing Infinity
     //  )
     //  (
-    //     \:  a colon to indicate that this will be a range
-    //         followed by the same thing in part 1
+    //     \:      a colon to indicate that this will be a range
+    //             followed by the same thing in part 1
+    //     \!?     optionally don't include second value
     //     (
     //         [+-]?           optional sign character
     //         (
@@ -41,7 +43,7 @@ function parse(s) {
     //     )
     //  )?   this second part is optional
     //  $    end of string
-    var validRangeRegex = /^([+-]?((\d+(\.\d*)?)|(\.\d+))|\$)(\:([+-]?((\d+(\.\d*)?)|(\.\d+))|\$))?$/;
+    var validRangeRegex = /^\!?([+-]?((\d+(\.\d*)?)|(\.\d+))|\$)(\:\!?([+-]?((\d+(\.\d*)?)|(\.\d+))|\$))?$/;
     var isValidRange = ranges.reduce(function(res, range) {
         return res && range !== '$' && range !== '.' && validRangeRegex.test(range);
     }, true);
@@ -53,10 +55,17 @@ function parse(s) {
     return ranges
         .map(function(range) {
             var couple = range.split(':').filter(notEmpty);
-            var res = {
-                start: couple[0] === '$' ? -Infinity : parseFloat(couple[0])
-            };
+            var res = {};
+            if (couple[0][0] === '!') {
+                res.startIncluded = false;
+                couple[0] = couple[0].slice(1);
+            }
+            res.start = couple[0] === '$' ? -Infinity : parseFloat(couple[0])
             if (couple[1]) {
+                if (couple[1][0] === '!') {
+                    res.endIncluded = false;
+                    couple[1] = couple[1].slice(1);
+                }
                 res.end = couple[1] === '$' ? +Infinity : parseFloat(couple[1]);
             }
             return res;
@@ -86,7 +95,8 @@ function isInRange(item, ranges, key) {
             min = range.end;
             max = range.start;
         }
-        if (item >= min && item <= max) {
+
+        if (item >= min && item <= max && !(range.startIncluded === false && item === min) && !(range.endIncluded === false && item === max)) {
             return true;
         }
     }

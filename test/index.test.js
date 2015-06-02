@@ -165,6 +165,50 @@ describe('parsing', function() {
             end: 2
         }]);
     });
+
+    it('should not include value if it is prepended range by a \'!\'', function() {
+        expect(ranger.parse('!217:548')).to.deep.equal([{
+            start: 217,
+            end: 548,
+            startIncluded: false
+        }]);
+
+        expect(ranger.parse('217:!548')).to.deep.equal([{
+            start: 217,
+            end: 548,
+            endIncluded: false
+        }]);
+
+        expect(ranger.parse('!217:!548')).to.deep.equal([{
+            start: 217,
+            end: 548,
+            startIncluded: false,
+            endIncluded: false
+        }]);
+
+        expect(ranger.parse('!217')).to.deep.equal([{
+            start: 217,
+            startIncluded: false
+        }]);
+
+        expect(ranger.parse('!$:217')).to.deep.equal([{
+            start: -Infinity,
+            end: 217,
+            startIncluded: false
+        }]);
+
+        expect(ranger.parse('217:!$')).to.deep.equal([{
+            start: 217,
+            end: +Infinity,
+            endIncluded: false
+        }]);
+    });
+
+    it('should not accept multiple \'!\' signs', function() {
+        expect(ranger.parse('!!2:4')).to.be.null;
+        expect(ranger.parse('2:!!4')).to.be.null;
+        expect(ranger.parse('!!2')).to.be.null;
+    });
 });
 
 
@@ -304,6 +348,71 @@ describe('isInRange', function() {
         [null, 3, 2, 4, -2, -Infinity, +Infinity].forEach(function(value) {
             expect(ranger.isInRange(value, startHigher)).to.equal(ranger.isInRange(value, startLower));
         })
+    });
+
+    it('should not include start if start is not included', function() {
+        var range = {
+            start: 2,
+            end: 10,
+            startIncluded: false
+        };
+        expect(ranger.isInRange(0, [range])).to.be.false;
+        expect(ranger.isInRange(2, [range])).to.be.false;
+        expect(ranger.isInRange(2.000002, [range])).to.be.true;
+        expect(ranger.isInRange(8, [range])).to.be.true;
+        expect(ranger.isInRange(10, [range])).to.be.true;
+        expect(ranger.isInRange(10.00002, [range])).to.be.false;
+    });
+
+    it('should not include end if end is not included', function() {
+        var range = {
+            start: 2,
+            end: 10,
+            endIncluded: false
+        };
+        expect(ranger.isInRange(0, [range])).to.be.false;
+        expect(ranger.isInRange(2, [range])).to.be.true;
+        expect(ranger.isInRange(2.000002, [range])).to.be.true;
+        expect(ranger.isInRange(8, [range])).to.be.true;
+        expect(ranger.isInRange(10, [range])).to.be.false;
+        expect(ranger.isInRange(10.00002, [range])).to.be.false;
+    });
+
+    it('should not include item if range.start === range.end and one is not included', function() {
+        expect(ranger.isInRange(2, [{
+            start: 2,
+            end: 2,
+            endIncluded: false
+        }])).to.be.false;
+
+        expect(ranger.isInRange(2, [{
+            start: 2,
+            end: 2,
+            startIncluded: false
+        }])).to.be.false;
+
+        expect(ranger.isInRange(2, [{
+            start: 2,
+            startIncluded: false
+        }])).to.be.false;
+
+        expect(ranger.isInRange(2, [{
+            start: 2,
+            endIncluded: false
+        }])).to.be.false;
+    });
+
+    it('should include Infinity values, unless not included', function() {
+        expect(ranger.isInRange(+Infinity, [{
+            start: 2,
+            end: +Infinity
+        }])).to.be.true;
+
+        expect(ranger.isInRange(+Infinity, [{
+            start: 2,
+            end: +Infinity,
+            endIncluded: false
+        }])).to.be.false;
     });
 });
 

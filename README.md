@@ -25,20 +25,29 @@ var ranger = require('number-ranger');
 ranger.parse('2');
 // --> [{ start : 2 }]
 
+// Add ':' to make a range between two numbers
 ranger.parse('2:3');
 // --> [{ start : 2, end: 3 }]
 
+// Create multiple ranges by separating them by ','
 ranger.parse('2:3,4');
 // --> [{ start : 2, end: 3 }, { start: 4 }]
 
+// Floating numbers are fine
 ranger.parse('.002:.4');
 // --> [{ start : .002, end: .4 }]
 
+// -/+ infinity is represented by $
 ranger.parse('2:$');
 // --> [{ start : 2, end: +Infinity }]
-
 ranger.parse('$:2');
 // --> [{ start : -Infinity, end: 2 }]
+
+// Exclude bounds by prepending by !
+ranger.parse('!2:4');
+// --> [{ start : 2, end: 4, startIncluded: false }]
+ranger.parse('2:!4');
+// --> [{ start : 2, end: 4, endIncluded: false }]
 ```
 
 ## ranger.isInRange(item, ranges[, key])
@@ -50,22 +59,25 @@ A key can also be provided when item is not a number but an object, and the valu
 ```js
 var ranger = require('number-ranger');
 
+// Pass the result of ranger.range
 ranger.isInRange(325, ranger.parse('300:350'));
 // --> true
 
+// or ranger.ranger will be used implicitly
 ranger.isInRange(450, '400:450');
 // --> true
 
 ranger.isInRange(0, '400:450');
 // --> false
 
-ranger.isInRange({ value: 450 }, '400:450', 'value');
-// --> true
-
 ranger.isInRange(450, [{
     start: 400,
     end: 500
 }]);
+// --> true
+
+// By specifying a field, it will consider item to be an object and use item[key] as the value
+ranger.isInRange({ value: 450 }, '400:450', 'value');
 // --> true
 
 // The order of start and end are not important
@@ -74,6 +86,14 @@ ranger.isInRange(450, [{
     end: 400
 }]);
 // --> true
+
+// You can exclude bounds
+ranger.isInRange(2, [{
+    start: 2,
+    end: 5,
+    startIncluded: false
+}]);
+// --> false
 ```
 
 ## ranger.isInRangeFilter(ranges[, key])
