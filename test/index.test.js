@@ -166,48 +166,182 @@ describe('parsing', function() {
         }]);
     });
 
-    it('should not include value if it is prepended range by a \'!\'', function() {
-        expect(ranger.parse('!217:548')).to.deep.equal([{
+    it('should not include value if it is prepended range by a \'x\'', function() {
+        expect(ranger.parse('x217:548')).to.deep.equal([{
             start: 217,
             end: 548,
             startIncluded: false
         }]);
 
-        expect(ranger.parse('217:!548')).to.deep.equal([{
+        expect(ranger.parse('217:x548')).to.deep.equal([{
             start: 217,
             end: 548,
             endIncluded: false
         }]);
 
-        expect(ranger.parse('!217:!548')).to.deep.equal([{
+        expect(ranger.parse('x217:x548')).to.deep.equal([{
             start: 217,
             end: 548,
             startIncluded: false,
             endIncluded: false
         }]);
 
-        expect(ranger.parse('!217')).to.deep.equal([{
+        expect(ranger.parse('x217')).to.deep.equal([{
             start: 217,
             startIncluded: false
         }]);
 
-        expect(ranger.parse('!$:217')).to.deep.equal([{
+        expect(ranger.parse('x$:217')).to.deep.equal([{
             start: -Infinity,
             end: 217,
             startIncluded: false
         }]);
 
-        expect(ranger.parse('217:!$')).to.deep.equal([{
+        expect(ranger.parse('217:x$')).to.deep.equal([{
             start: 217,
             end: +Infinity,
             endIncluded: false
         }]);
     });
 
-    it('should not accept multiple \'!\' signs', function() {
-        expect(ranger.parse('!!2:4')).to.be.null;
-        expect(ranger.parse('2:!!4')).to.be.null;
-        expect(ranger.parse('!!2')).to.be.null;
+    it('should not accept multiple \'x\' signs', function() {
+        expect(ranger.parse('xx2:4')).to.be.null;
+        expect(ranger.parse('2:xx4')).to.be.null;
+        expect(ranger.parse('xx2')).to.be.null;
+    });
+
+    describe('with custom symbols', function () {
+        it('should redefine the range symbol', function() {
+            expect(ranger.parse('3;10', {
+                range: ';'
+            })).to.deep.equal([{
+                start: 3,
+                end: 10
+            }]);
+
+            expect(ranger.parse('3p10', {
+                range: 'p'
+            })).to.deep.equal([{
+                start: 3,
+                end: 10
+            }]);
+        });
+
+        it('should redefine the separator', function() {
+            expect(ranger.parse('2%3:10', {
+                separator: '%'
+            })).to.deep.equal([{
+                start: 2
+            }, {
+                start: 3,
+                end: 10
+            }]);
+
+            expect(ranger.parse('2p3:10', {
+                separator: 'p'
+            })).to.deep.equal([{
+                start: 2
+            }, {
+                start: 3,
+                end: 10
+            }]);
+        });
+
+        it('should redefine the infinity symbol', function() {
+            expect(ranger.parse('%:0', {
+                infinity: '%'
+            })).to.deep.equal([{
+                start: -Infinity,
+                end: 0
+            }]);
+
+            expect(ranger.parse('0:%', {
+                infinity: '%'
+            })).to.deep.equal([{
+                start: 0,
+                end: +Infinity
+            }]);
+        });
+
+        it('should redefine the exclusion symbol', function() {
+            expect(ranger.parse('x2:4', {
+                exclude: 'x'
+            })).to.deep.equal([{
+                start: 2,
+                end: 4,
+                startIncluded: false
+            }]);
+
+            expect(ranger.parse('2:x4', {
+                exclude: 'x'
+            })).to.deep.equal([{
+                start: 2,
+                end: 4,
+                endIncluded: false
+            }]);
+        });
+
+        it('should not error when redefining by a special regex symbol', function() {
+            expect(ranger.parse('2)4', {
+                range: ')'
+            })).to.deep.equal([{
+                start: 2,
+                end: 4
+            }]);
+
+            expect(ranger.parse('2w4', {
+                range: 'w' // must not be interpreted as \w
+            })).to.deep.equal([{
+                start: 2,
+                end: 4
+            }]);
+
+            expect(ranger.parse('2:w', {
+                infinity: 'w' // must not be interpreted as \w
+            })).to.deep.equal([{
+                start: 2,
+                end: +Infinity
+            }]);
+        });
+
+        it('should return false when specifying custom symbols that are the same as others', function() {
+            expect(ranger.parse('3%10', {
+                range: '%',
+                separator: '%'
+            })).to.be.false;
+
+            expect(ranger.parse('3:10', {
+                separator: ':' // conflicts with default range symbol
+            })).to.be.false;
+
+            expect(ranger.parse('3:10', {
+                infinity: ':' // conflicts with default range symbol
+            })).to.be.false;
+
+            expect(ranger.parse('3:10', {
+                exclude: ':' // conflicts with default range symbol
+            })).to.be.false;
+        });
+
+        it('should return false when a symbol is an empty string or a string containing spaces', function() {
+            ['', ' ', '    ', ' p'].forEach(function(symbol) {
+                expect(ranger.parse('2', {
+                    range: symbol
+                })).to.be.false;
+
+                expect(ranger.parse('2', {
+                    separator: symbol
+                })).to.be.false;
+
+                expect(ranger.parse('2', {
+                    infinity: symbol
+                })).to.be.false;
+
+                expect(ranger.parse('2', {
+                    exclude: symbol
+                })).to.be.false;
+            });
+        });
     });
 });
 
