@@ -5,7 +5,7 @@ var expect = require('chai').expect;
 var ranger = require('../');
 
 describe('README examples', function() {
-    it('ranger.parse return as expected', function() {
+    it('ranger.parse returns as expected', function() {
         var res;
 
         res = ranger.parse('2');
@@ -26,14 +26,36 @@ describe('README examples', function() {
         res = ranger.parse('$:2');
         expect(res).to.deep.equal([{ start : -Infinity, end: 2 }]);
 
-        res = ranger.parse('!2:4');
+        res = ranger.parse('x2:4');
         expect(res).to.deep.equal([{ start : 2, end: 4, startIncluded: false }]);
 
-        res = ranger.parse('2:!4');
+        res = ranger.parse('2:x4');
         expect(res).to.deep.equal([{ start : 2, end: 4, endIncluded: false }]);
+
+        res = ranger.parse('2p}4?-47p%', {
+            range: 'p',
+            separator: '?',
+            infinity: '%',
+            exclude: '}'
+        });
+        expect(res).to.deep.equal([{
+            start: 2,
+            end: 4,
+            endIncluded: false
+        }, {
+            start: -47,
+            end: +Infinity
+        }]);
+
+        res = ranger.parse('3', {
+            range: '',
+            separator: '   p',
+            infinity: 'x'
+        });
+        expect(res).to.be.false;
     });
 
-    it('ranger.isInRange return as expected', function() {
+    it('ranger.isInRange returns as expected', function() {
         var res;
 
         res = ranger.isInRange(325, ranger.parse('300:350'));
@@ -68,7 +90,7 @@ describe('README examples', function() {
         expect(res).to.be.false;
     });
 
-    it('ranger.isInRangeFilter return as expected', function() {
+    it('ranger.isInRangeFilter returns as expected', function() {
         var res;
 
         res = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(ranger.isInRangeFilter([{

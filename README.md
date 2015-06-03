@@ -23,31 +23,55 @@ Parses and transforms a string into a easily usable range.
 var ranger = require('number-ranger');
 
 ranger.parse('2');
-// --> [{ start : 2 }]
+// --> [{ start: 2 }]
 
 // Add ':' to make a range between two numbers
 ranger.parse('2:3');
-// --> [{ start : 2, end: 3 }]
+// --> [{ start: 2, end: 3 }]
 
 // Create multiple ranges by separating them by ','
 ranger.parse('2:3,4');
-// --> [{ start : 2, end: 3 }, { start: 4 }]
+// --> [{ start: 2, end: 3 }, { start: 4 }]
 
 // Floating numbers are fine
 ranger.parse('.002:.4');
-// --> [{ start : .002, end: .4 }]
+// --> [{ start: .002, end: .4 }]
 
 // -/+ infinity is represented by $
 ranger.parse('2:$');
-// --> [{ start : 2, end: +Infinity }]
+// --> [{ start: 2, end: +Infinity }]
 ranger.parse('$:2');
-// --> [{ start : -Infinity, end: 2 }]
+// --> [{ start: -Infinity, end: 2 }]
 
-// Exclude bounds by prepending by !
-ranger.parse('!2:4');
-// --> [{ start : 2, end: 4, startIncluded: false }]
-ranger.parse('2:!4');
-// --> [{ start : 2, end: 4, endIncluded: false }]
+// Exclude bounds by prepending by x
+ranger.parse('x2:4');
+// --> [{ start: 2, end: 4, startIncluded: false }]
+ranger.parse('2:x4');
+// --> [{ start: 2, end: 4, endIncluded: false }]
+
+```
+
+
+You can specify your own symbols if you want. If you use forbidden symbols or have multiple keys have the same value, any calls will return false. If you wish to use odd and/or unforeseen symbols, test carefully beforehand to make sure it works. If you use symbols like '.', '-', you may lose the ability to parse floating or negative numbers for instance.
+```js
+ranger.parse('2p}4?-47p%', {
+    // All of these are optional. Only specify those you wish to override
+    range: 'p',
+    separator: '?',
+    infinity: '%',
+    exclude: '}'
+});
+// --> [
+//     { start: 2, end: 4, endIncluded: false },
+//     { start: -47, end: +Infinity }
+// ]
+
+ranger.parse('3', {
+    range: '', // no empty strings
+    separator: '   p', // no spaces,
+    infinity: 'x' // not a conflicting symbol (= exclude's default symbol)
+});
+// --> false
 ```
 
 ## ranger.isInRange(item, ranges[, key])
